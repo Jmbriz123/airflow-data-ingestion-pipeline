@@ -1,3 +1,4 @@
+# File purpose: Answer the question: What is the expected schema for the customer care emails extraction?
 table: public.customer_care_emails
 
 primary_key: [thread_id, timestamp]
