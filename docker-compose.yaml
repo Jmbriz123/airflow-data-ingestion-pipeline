@@ -1,5 +1,6 @@
 services:
 
+  #target DB service
   postgres: #service name
     image: postgres:15.3-alpine
     container_name: postgres
@@ -12,6 +13,24 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data #mount the named volume to the container's data directory
  
+  #workflow orchestration service
+  airflow:
+    image: apache/airflow:slim-latest-python3.11
+    container_name: airflow
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB} #db connection string
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor #the executor to use for running tasks
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False' 
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    command: standalone #run airflow in standalone mode for development and testing
 volumes: #create a named volume for persisting PostgreSQL data
   postgres_data:
 
