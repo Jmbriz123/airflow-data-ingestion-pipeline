@@ -14,6 +14,7 @@ services:
       - postgres_data:/var/lib/postgresql/data #mount the named volume to the container's data directory
  
   #workflow orchestration service
+  
   airflow:
     image: apache/airflow:slim-latest-python3.11
     container_name: airflow
