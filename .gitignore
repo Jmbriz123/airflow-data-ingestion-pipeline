@@ -219,3 +219,6 @@ __marimo__/
 
 #prject specific editor settings
 .vscode/settings.json
+
+#airflow mounted logs folder
+logs/
