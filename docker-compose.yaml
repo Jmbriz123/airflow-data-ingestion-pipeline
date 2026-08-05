@@ -15,7 +15,11 @@ services:
   #workflow orchestration service
   
   airflow:
-    image: apache/airflow:2.8.1-python3.11
+    build: 
+      context: . 
+      dockerfile: Dockerfile
+
+    image: airflow-data-ingestion-pipeline #gives a name to the image that docker builds
     container_name: airflow
     restart: always
     depends_on:
@@ -24,7 +28,7 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB} #db connection string
       AIRFLOW__CORE__EXECUTOR: LocalExecutor #the executor to use for running tasks
       AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
-   
+    
     ports:
       - "8080:8080"
     volumes:
