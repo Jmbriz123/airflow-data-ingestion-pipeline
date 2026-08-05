@@ -35,6 +35,9 @@ services:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
+      - ./pipeline:/opt/airflow/pipeline
+      - ./config:/opt/airflow/pipeline
+      - ./data:/opt/airflow/pipeline
     command: standalone #run airflow in standalone mode for development and testing
     user: "${AIRFLOW_UID}:0" #set the user to run the container as, using the UID from the .env file
 volumes: #create a named volume for persisting PostgreSQL data
