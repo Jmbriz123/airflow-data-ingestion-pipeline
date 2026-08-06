@@ -4,10 +4,35 @@
 import pandas as pd 
 from pandas import DataFrame
 from pathlib import Path
+import logging
+
+#configure the logging system
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
+#create logger for this module 
+logger = logging.getLogger(__name__)
+
 def extract_csv(file_path: Path) -> DataFrame:
-    df = pd.read_csv(file_path)
-    print(df)
-    return df
+    logger.info("Starting CSV extraction.")
+
+    try:
+        logger.info(f"Reading CSV from {file_path}")
+
+        df = pd.read_csv(file_path)
+
+        logger.info(
+            f"Extracted {len(df)} rows and {len(df.columns)} columns"
+        )
+
+        logger.info("CSV extraction completed")
+
+        return df
+
+    except FileNotFoundError:
+        logger.exception(f"CSV file not found: {file_path}")
+        raise
 
 BASE_DIR = Path(__file__).resolve().parent.parent #project root
 DATA_PATH = BASE_DIR / "data" / "dataset.csv"
