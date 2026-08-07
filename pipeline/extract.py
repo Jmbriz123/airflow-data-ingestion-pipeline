@@ -5,12 +5,13 @@ import pandas as pd
 from pandas import DataFrame
 from pathlib import Path
 import logging
-
+from config.paths import EMAILS_DATASET_PATH
 #configure the logging system
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s"
 )
+
 #create logger for this module 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +35,8 @@ def extract_csv(file_path: Path) -> DataFrame:
         logger.exception(f"CSV file not found: {file_path}")
         raise
 
-BASE_DIR = Path(__file__).resolve().parent.parent #project root
-DATA_PATH = BASE_DIR / "data" / "dataset.csv"
+
+
 
 if __name__ == "__main__":
-    extract_csv(DATA_PATH)
+    extract_csv(EMAILS_DATASET_PATH) 
