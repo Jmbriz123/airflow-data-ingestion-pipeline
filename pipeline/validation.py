@@ -11,10 +11,20 @@ from pprint import pprint
 def validate_schema(df, schema_path):
     
     #load the YAML file into python dictionary
-    with open(schema_path) as file:
-        schema = yaml.safe_load(file) 
+    schema = load_YAML_to_dict(schema_path)
     
-    #Expected Columns
+    #validate column names 
+    validate_columns(df, schema)
+    #validate nullability of each columns
+
+
+
+def load_YAML_to_dict(schema_path):
+    with open(schema_path) as file:
+        schema = yaml.safe_load(file)
+    return  schema
+def validate_columns(df, schema):
+     #Expected Columns
     expected_columns = { #extract column names from the schema columns
         column["name"]
         for column in schema["columns"]
@@ -36,7 +46,6 @@ def validate_schema(df, schema_path):
         )
     else:
         print("Column names validation passed")
-    
 
 
 if __name__ == "__main__":
