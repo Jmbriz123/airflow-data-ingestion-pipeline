@@ -15,18 +15,28 @@ def validate_schema(df, schema_path):
         schema = yaml.safe_load(file) 
     
     #Expected Columns
-    expected_columns = [ #extract column names from the schema columns
+    expected_columns = { #extract column names from the schema columns
         column["name"]
         for column in schema["columns"]
-    ]
+    }
     #actual columns
-    actual_columns = list(df.columns)
+    actual_columns = set(df.columns)
+
+    #compare columns by looking at set difference
+    missing_columns = expected_columns - actual_columns
+    unexpected_columns = actual_columns - expected_columns
+
 
     #validate column names
-    if actual_columns != expected_columns:
-        raise ValueError("CSV columns do not match expected schema")
+    if missing_columns or unexpected_columns:
+        raise ValueError(
+            f"Schema Mismatch. "
+            f"Missing columns: {missing_columns}. "
+            f"Unexpected columns: {unexpected_columns}. "
+        )
     else:
-        print("Actual column names match the expected")
+        print("Column names validation passed")
+    
 
 
 if __name__ == "__main__":
