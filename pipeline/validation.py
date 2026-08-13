@@ -8,13 +8,13 @@ from pipeline.extract import extract_csv
 from config.paths import EMAILS_SCHEMA_PATH
 from config.paths import EMAILS_DATASET_PATH
 from pprint import pprint
-def validate_schema(df, schema_path):
+def validate_df_schema(df, schema_path):
     
     #load the YAML file into python dictionary
     schema = load_YAML_to_dict(schema_path)
     
     #validate column names 
-    validate_columns(df, schema)
+    validate_column_names(df, schema)
     #validate nullability of each columns
 
 
@@ -23,7 +23,7 @@ def load_YAML_to_dict(schema_path):
     with open(schema_path) as file:
         schema = yaml.safe_load(file)
     return  schema
-def validate_columns(df, schema):
+def validate_column_names(df, schema):
      #Expected Columns
     expected_columns = { #extract column names from the schema columns
         column["name"]
@@ -47,9 +47,11 @@ def validate_columns(df, schema):
     else:
         print("Column names validation passed")
 
+def validate_column_nullability(df, schema): #validate nullability of each columns in the df
+    ...
 
 if __name__ == "__main__":
-    validate_schema(extract_csv(EMAILS_DATASET_PATH), EMAILS_SCHEMA_PATH)
+    validate_df_schema(extract_csv(EMAILS_DATASET_PATH), EMAILS_SCHEMA_PATH)
 
 
     
