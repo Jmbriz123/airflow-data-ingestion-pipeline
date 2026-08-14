@@ -19,6 +19,9 @@ def validate_df_schema(df: DataFrame, schema_path: Path) ->None:
     validate_column_names(df, schema)
     #validate nullability of each columns
     validate_column_nullability(df, schema)
+    #validate column data types 
+    validate_column_data_type(df, schema)
+
 
 
 def load_YAML_to_dict(schema_path: Path) -> dict:
@@ -56,6 +59,30 @@ def validate_column_nullability(df: DataFrame, schema: dict) ->None : #validate 
                 raise ValueError(f"Incoming dataframe column did not match expected nullability")
     print("Column nullability validation passeed")
 
+def validate_column_data_type(df: DataFrame, schema: dict) -> None:
+    # 1. Create a list to store mismatch messages
+    mismatches = []
+
+    # 2. Loop over columns in schema and df 
+    for column in schema["columns"]:
+        col_name = column["name"]
+
+        # Get the expected type string from the 'column' dict
+        expected_type = column['type']
+
+        # Get the actual dtype from the DataFrame
+        actual_type = str(df[col_name].dtype)
+
+        # Compare actual and expected
+        if expected_type != actual_type:
+            mismatches.append(f"Column '{col_name}': expected '{expected_type}', got '{actual_type}'")
+        
+    if mismatches:
+        # Joining the mismatch list with newlines makes debugging super easy in terminal/logs
+        error_details = "\n".join(mismatches)
+        raise ValueError(f"Data type validation failed:\n{error_details}")
+    else:
+        print("Column data type validation passed.")
 
 if __name__ == "__main__":
 
