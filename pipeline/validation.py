@@ -18,7 +18,7 @@ def validate_df_schema(df: DataFrame, schema_path: Path) ->None:
     #validate column names 
     validate_column_names(df, schema)
     #validate nullability of each columns
-
+    validate_column_nullability(df, schema)
 
 
 def load_YAML_to_dict(schema_path: Path) -> dict:
@@ -50,9 +50,15 @@ def validate_column_names(df: DataFrame, schema: dict) ->None:
         print("Column names validation passed")
 
 def validate_column_nullability(df: DataFrame, schema: dict) ->None : #validate nullability of each columns in the df
-    ... 
+    for column in schema['columns']:
+        if column['nullable'] is False:
+            if df[column['name']].isna().any():
+                raise ValueError(f"Incoming dataframe column did not match expected nullability")
+    print("Column nullability validation passeed")
+
 
 if __name__ == "__main__":
+
     validate_df_schema(extract_csv(EMAILS_DATASET_PATH), EMAILS_SCHEMA_PATH)
 
 
