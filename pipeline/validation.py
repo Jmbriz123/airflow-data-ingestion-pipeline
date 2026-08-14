@@ -62,7 +62,13 @@ def validate_column_nullability(df: DataFrame, schema: dict) ->None : #validate 
 def validate_column_data_type(df: DataFrame, schema: dict) -> None:
     # 1. Create a list to store mismatch messages
     mismatches = []
-
+    #data type mapping
+    SCHEMA_TO_PANDAS_TYPES = {
+        "text": ["object", "string"],
+        "numeric": ["float64", "int64"],
+        "jsonb": ["object", "string"],
+        "timestamp with time zone": ["object", "datetime64[ns, UTC]", "datetime64[ns]"],
+    }
     # 2. Loop over columns in schema and df 
     for column in schema["columns"]:
         col_name = column["name"]
@@ -73,10 +79,17 @@ def validate_column_data_type(df: DataFrame, schema: dict) -> None:
         # Get the actual dtype from the DataFrame
         actual_type = str(df[col_name].dtype)
 
-        # Compare actual and expected
-        if expected_type != actual_type:
-            mismatches.append(f"Column '{col_name}': expected '{expected_type}', got '{actual_type}'")
-        
+        #allowed pandas types for this schema type
+        allowed_types = SCHEMA_TO_PANDAS_TYPES.get(expected_type, [expected_type])
+
+        #check if actual types matches allowed types
+        if actual_type not in allowed_types:
+            mismatches.append(
+                f"Column '{col_name}': expected DB type '{expected_type}' "
+                f"(allowed: {allowed_types}), got '{actual_type}'"
+            )
+
+
     if mismatches:
         # Joining the mismatch list with newlines makes debugging super easy in terminal/logs
         error_details = "\n".join(mismatches)
