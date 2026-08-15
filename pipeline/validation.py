@@ -123,6 +123,7 @@ def validate_df_schema(df: DataFrame, schema_path: Path) -> None:
     validate_column_data_type(df, schema)
 
     logger.info("DataFrame schema validation passed successfully.")
+    
 
 
 if __name__ == "__main__":
