@@ -4,7 +4,7 @@ from pathlib import Path
 from pandas import DataFrame
 from sqlalchemy import create_engine, text
 
-from config.config import (
+from config.config import (   
     DATABASE_URL,
     EMAILS_DDL_PATH,
     EMAILS_DATASET_PATH,
@@ -30,8 +30,8 @@ def split_schema_and_table(table_name: str) -> tuple[str, str]:
 
 def ensure_table_exists(engine, ddl_path: str | Path) -> None:
     """Create the target table using the project DDL if it does not already exist."""
-    ddl_sql = Path(ddl_path).read_text(encoding="utf-8")
-    with engine.begin() as connection:
+    ddl_sql = Path(ddl_path).read_text(encoding="utf-8") #read the .sql file into a python string
+    with engine.begin() as connection: #starts DB connection and transaction
         connection.execute(text(ddl_sql))
     logger.info("Ensured target table exists in PostgreSQL.")
 
@@ -46,12 +46,12 @@ def load_to_postgres(df: DataFrame, db_uri: str, table_name: str, ddl_path: str 
     if ddl_path is not None:
         ensure_table_exists(engine, ddl_path)
 
-    with engine.begin() as connection:
-        df.to_sql(
+    with engine.begin() as connection: #starts a DB connection and release connection after the block
+        df.to_sql( #converts pandas dataframe rows into SQL inserts
             name=actual_table_name,
             con=connection,
             schema=schema_name,
-            if_exists="append",
+            if_exists="replace",
             index=False,
             chunksize=1000,
             method="multi",
@@ -73,4 +73,4 @@ if __name__ == "__main__":
     validate_df_schema(extracted_df, EMAILS_SCHEMA_PATH)
     transformed_data = transform_data(extracted_df)
     load_to_postgres(transformed_data, DATABASE_URL, TABLE, ddl_path=EMAILS_DDL_PATH)
-
+    
