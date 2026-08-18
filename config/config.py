@@ -5,13 +5,19 @@ from sqlalchemy.engine import URL
 
 load_dotenv()
 
+DB_HOST = os.getenv("DB_HOST") or os.getenv("POSTGRES_HOST") or "postgres"
+DB_PORT = int(os.getenv("DB_PORT") or os.getenv("POSTGRES_PORT") or "5432")
+DB_NAME = os.getenv("DB_NAME") or os.getenv("POSTGRES_DB") or "postgres"
+DB_USER = os.getenv("POSTGRES_USER") or "postgres"
+DB_PASSWORD = os.getenv("POSTGRES_PASSWORD") or "postgres"
+
 DATABASE_URL = URL.create(
     drivername="postgresql+psycopg2",
-    username=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    host=os.getenv("DB_HOST"),
-    port=int(os.getenv("DB_PORT", "5432")),
-    database=os.getenv("DB_NAME"),
+    username=DB_USER,
+    password=DB_PASSWORD,
+    host=DB_HOST,
+    port=DB_PORT,
+    database=DB_NAME,
 )
 
 
