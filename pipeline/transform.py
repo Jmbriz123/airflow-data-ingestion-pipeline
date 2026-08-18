@@ -3,7 +3,7 @@ import logging
 from typing import Any  # Fixed capitalization for type hint
 
 import pandas as pd
-from config.paths import EMAILS_DATASET_PATH, EMAILS_SCHEMA_PATH
+from config.config import EMAILS_DATASET_PATH, EMAILS_SCHEMA_PATH
 from pandas import DataFrame
 # Import ETL functions
 from pipeline.extract import extract_csv

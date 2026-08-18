@@ -5,7 +5,7 @@ import pandas as pd
 from pandas import DataFrame
 from pathlib import Path
 import logging
-from config.paths import EMAILS_DATASET_PATH
+from config.config import EMAILS_DATASET_PATH
 #configure the logging system
 logging.basicConfig(
     level=logging.INFO,

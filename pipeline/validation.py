@@ -5,7 +5,7 @@ from typing import Any, Dict
 import yaml
 from pandas import DataFrame
 
-from config.paths import EMAILS_DATASET_PATH, EMAILS_SCHEMA_PATH
+from config.config import EMAILS_DATASET_PATH, EMAILS_SCHEMA_PATH
 from pipeline.extract import extract_csv
 
 # Initialize module-level logger
