@@ -55,8 +55,8 @@ def customer_care_emails_etl_orchestrator():
 
     #define task dependencies (implicitly) and build the DAG nodes 
     extracted_data = extract(EMAILS_DATASET_PATH)
-    validated_data = validate_df_schema(extracted_data, EMAILS_SCHEMA_PATH)
-    transform_data = transform(validated_data)
+    validated_data = validate(extracted_data, EMAILS_SCHEMA_PATH)
+    transformed_data = transform(validated_data)
     load(transformed_data)
 
     
