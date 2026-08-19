@@ -10,12 +10,19 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      DB_HOST: postgres
+      DB_PORT: '5432'
+      DB_NAME: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data #mount the named volume to the container's data directory
   #workflow orchestration service
   
   airflow:
-    image: apache/airflow:2.8.1-python3.11
+    build: 
+      context: . 
+      dockerfile: Dockerfile
+
+    image: airflow-data-ingestion-pipeline #gives a name to the image that docker builds
     container_name: airflow
     restart: always
     depends_on:
@@ -24,13 +31,23 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB} #db connection string
       AIRFLOW__CORE__EXECUTOR: LocalExecutor #the executor to use for running tasks
       AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
-   
+      PYTHONPATH: /opt/airflow #add the airflow root directory to the Python path so that custom modules can be imported correctly
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DB_HOST: postgres
+      DB_PORT: '5432'
+      DB_NAME: ${POSTGRES_DB}
+    
     ports:
       - "8080:8080"
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
+      - ./pipeline:/opt/airflow/pipeline
+      - ./config:/opt/airflow/config
+      - ./data:/opt/airflow/data
     command: standalone #run airflow in standalone mode for development and testing
     user: "${AIRFLOW_UID}:0" #set the user to run the container as, using the UID from the .env file
 volumes: #create a named volume for persisting PostgreSQL data

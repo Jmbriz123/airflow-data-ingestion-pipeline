@@ -1,0 +1,11 @@
+# Orchestration
+apache-airflow>=2.0.0,<3.0.0
+
+# Data Processing
+pandas>=2.0.0
+
+# Configuration
+PyYAML>=6.0
+
+# Database Drivers
+psycopg2-binary>=2.9.0
