@@ -5,7 +5,7 @@ from pathlib import Path
 
 from airflow.decorators import dag, task
 from pandas import DataFrame
-
+import pandas as pd
 from config.config import (
     DATABASE_URL,
     EMAILS_DDL_PATH,
@@ -58,6 +58,7 @@ def customer_care_emails_etl_orchestrator():
         df = pd.read_parquet(validated_path)
         transformed_df = transform_data(df)
         staging_path = STAGING_DIR / "transformed_data.parquet"
+        transformed_df.to_parquet(staging_path, index=False)
         return str(staging_path)
 
     @task
@@ -67,7 +68,7 @@ def customer_care_emails_etl_orchestrator():
         TABLE = SCHEMA["table"]
         df = pd.read_parquet(transformed_path)
         rows_loaded =  load_to_postgres(
-            transformed_df,
+            df,
             DATABASE_URL,
             TABLE,
             ddl_path=EMAILS_DDL_PATH,
