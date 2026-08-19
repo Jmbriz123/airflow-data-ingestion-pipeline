@@ -15,6 +15,77 @@ The DAG is named `customer_care_emails_pipeline` and runs these tasks in order:
 
 The source data is mounted into Airflow at `/opt/airflow/data`; configuration, pipeline code, DAGs, logs, and plugins are mounted in the same way. The current checked-in CSV contains 20,488 data rows, excluding its header.
 
+## Engineering profile
+
+This project demonstrates the core practices expected in a production-minded batch data pipeline:
+
+| Area | Implementation |
+| --- | --- |
+| Orchestration | Apache Airflow TaskFlow API with explicit `extract -> validate -> transform -> load` dependencies |
+| Runtime | Docker Compose with pinned Airflow and PostgreSQL base images |
+| Processing | pandas DataFrames with Parquet staging between isolated Airflow tasks |
+| Storage | PostgreSQL 15 target database with a declarative SQL table definition |
+| Data contract | YAML schema defining columns, database types, nullability, and primary key |
+| Configuration | Environment variables for credentials and connection settings; project paths are centralized in `config/config.py` |
+| Reliability | Schema validation before transformation, database transactions, table creation from DDL, and task-level logging |
+| Reproducibility | One Compose command builds the same Airflow image and starts the complete local stack |
+
+### Engineering standards in the implementation
+
+- **Separation of concerns:** orchestration lives in `dags/`, business logic lives in `pipeline/`, and environment/path configuration lives in `config/`.
+- **Contract-first ingestion:** the CSV is checked against a version-controlled schema before it can reach PostgreSQL. This catches missing, unexpected, nullable, or incorrectly typed columns early.
+- **Safe database writes:** the load operation uses SQLAlchemy transaction boundaries and executes the DDL before loading data. A failed transaction does not leave a partially committed batch.
+- **Repeatable runs:** loading uses `if_exists="replace"`, so rerunning the DAG refreshes the table from the source rather than accumulating duplicate batches.
+- **Container parity:** Airflow, its Python dependencies, the scheduler, and PostgreSQL run in containers, reducing host-machine differences for teammates and reviewers.
+- **Operational visibility:** Airflow exposes task states and logs through the UI, while the CLI provides repeatable commands for triggering runs and inspecting failures.
+- **Secrets hygiene:** credentials are supplied through `.env`, which is excluded from Git. The example file documents the required variables without containing real secrets.
+
+### Design trade-offs
+
+This is intentionally a local development and portfolio implementation. `LocalExecutor`, Airflow standalone mode, a bind-mounted source file, and a PostgreSQL named volume keep the system easy to reproduce. A production deployment would add managed infrastructure, secret management, service health checks, alerting, retry/backoff policy, data-quality metrics, and immutable or partitioned batch storage.
+
+## Technology stack
+
+- **Apache Airflow 2.9.3:** workflow scheduling, dependency management, task execution, and operational UI.
+- **Python 3.11:** application runtime supplied by the Airflow base image.
+- **pandas:** CSV ingestion, data cleaning, timestamp and numeric normalization, and DataFrame processing.
+- **Parquet:** intermediate task hand-off format, avoiding large in-memory cross-task payloads.
+- **PostgreSQL 15.3 Alpine:** relational destination with typed columns, JSONB fields, and a composite primary key.
+- **SQLAlchemy and psycopg2:** Python-to-PostgreSQL connectivity and transactional loading.
+- **PyYAML:** parsing the version-controlled data contract.
+- **Docker Compose:** one-command local orchestration of the Airflow and PostgreSQL services.
+
+## Quality gates and extension path
+
+The repository’s current verification path is deliberately executable:
+
+```bash
+# Validate Compose interpolation and service configuration
+docker compose --env-file .env.example config --quiet
+
+# Check that Airflow can parse and register the DAG
+docker compose exec airflow airflow dags list-import-errors
+docker compose exec airflow airflow dags list | grep customer_care_emails_pipeline
+
+# Verify the loaded batch at the database boundary
+docker compose exec postgres sh -c \
+	'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT COUNT(*) FROM public.customer_care_emails;"'
+```
+
+The schema validator is the first data-quality gate, and the PostgreSQL DDL is the second boundary. For a production evolution of this project, the next quality improvements would be automated unit tests for each pipeline module, an integration test against disposable PostgreSQL, SQL linting, pre-commit hooks, CI image builds, and explicit row-count or freshness assertions in the DAG.
+
+## Data model
+
+The destination table is `public.customer_care_emails`.
+
+- The composite primary key is `(thread_id, timestamp)`, allowing multiple messages in one thread while preventing duplicate messages at the same timestamp.
+- `email_types` and `product_types` are stored as PostgreSQL `JSONB` because the source contains list-valued attributes.
+- `timestamp` is normalized to UTC before loading.
+- Required business fields are protected by `NOT NULL` constraints in the DDL and by the YAML validation contract.
+- `customer_satisfaction` is loaded as a numeric value and may be null, matching the source contract.
+
+This design keeps the raw business attributes queryable in PostgreSQL while preserving the thread-level identifiers needed for downstream analytics.
+
 ## Prerequisites
 
 Install Docker on the host machine. Git is optional if you already have the repository files, and a web browser is needed for the Airflow UI.
